@@ -1,13 +1,12 @@
 apiVersion: apps/v1
-kind: Deployment
+kind: StatefulSet
 metadata:
   name: {{ include "test-chart.fullname" . }}
   labels:
     {{- include "test-chart.labels" . | nindent 4 }}
 spec:
-  {{- if not .Values.autoscaling.enabled }}
+  serviceName: {{ include "test-chart.fullname" . }}  # Required for StatefulSet
   replicas: {{ .Values.replicaCount }}
-  {{- end }}
   selector:
     matchLabels:
       {{- include "test-chart.selectorLabels" . | nindent 6 }}
@@ -35,7 +34,7 @@ spec:
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           ports:
             - name: http
-              containerPort: 80
+              containerPort: 8080
               protocol: TCP
           livenessProbe:
             httpGet:
@@ -59,3 +58,12 @@ spec:
       tolerations:
         {{- toYaml . | nindent 8 }}
       {{- end }}
+
+  volumeClaimTemplates:  # Required for StatefulSet
+    - metadata:
+        name: {{ include "test-chart.fullname" . }}-data
+      spec:
+        accessModes: {{ .Values.accessModes | toYaml | nindent 8 }}
+        resources:
+          requests:
+            storage: {{ .Values.storage.size | default "1Gi" }}

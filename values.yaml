@@ -80,3 +80,10 @@ nodeSelector: {}
 tolerations: []
 
 affinity: {}
+
+
+accessModes:
+  - ReadWriteOnce
+
+storage:
+  size: 1Gi
